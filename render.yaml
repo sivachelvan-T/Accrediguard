@@ -1,0 +1,35 @@
+databases:
+  - name: accrediguard-db
+    plan: free
+
+services:
+  - type: web
+    name: accrediguard-ai
+    runtime: node
+    plan: free
+    buildCommand: npm ci --prefix backend && npm ci --include=dev --prefix frontend && npm run build --prefix frontend && test -f frontend/dist/index.html
+    startCommand: npm run seed --prefix backend && npm start --prefix backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://accrediguard-ai.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: DATABASE_URL
+        fromDatabase:
+          name: accrediguard-db
+          property: connectionString
+      - key: USE_SQLITE
+        value: 'false'
+      - key: MAX_FILE_SIZE_MB
+        value: 10
+      - key: MAX_FILES_PER_REQUEST
+        value: 5
+      - key: UPLOAD_DIR
+        value: ./uploads
